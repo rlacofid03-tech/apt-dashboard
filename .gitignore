@@ -1,0 +1,25 @@
+# API Keys and sensitive configuration
+.env
+
+# Local Cache Databases (SQLite cache)
+*.db
+apt_cache.db
+
+# Python compilation artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# IDE and Editor settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp

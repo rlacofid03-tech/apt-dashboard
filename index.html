@@ -1,0 +1,2410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아파트 실거래가 통계 분석 대시보드</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style -->
+    <style>
+/* Reset & Variables */
+:root {
+    --bg-main: #0b0f19;
+    --bg-card: rgba(20, 26, 46, 0.6);
+    --bg-sidebar: rgba(13, 17, 33, 0.9);
+    --border-color: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.15);
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    
+    --primary: #6366f1; /* Indigo */
+    --primary-hover: #4f46e5;
+    --primary-light: rgba(99, 102, 241, 0.15);
+    
+    --accent-blue: #38bdf8;
+    --accent-green: #10b981;
+    --accent-purple: #a855f7;
+    --accent-gold: #fbbf24;
+    --accent-red: #ef4444;
+    
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    
+    --font-sans: 'Inter', 'Noto Sans KR', sans-serif;
+    --font-logo: 'Outfit', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* App Layout */
+.app-container {
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Sidebar Controls */
+.sidebar {
+    width: 320px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-color);
+    padding: 30px 24px;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 40px;
+}
+
+.logo-icon {
+    font-size: 28px;
+    color: var(--primary);
+    background: linear-gradient(135deg, var(--primary), var(--accent-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo-text h1 {
+    font-family: var(--font-logo);
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+}
+
+.logo-text span {
+    font-size: 11px;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    flex-grow: 1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group.row {
+    flex-direction: row;
+    gap: 12px;
+}
+
+.form-group.row .col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.label-with-val {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#trend-val {
+    font-size: 12px;
+    color: var(--accent-blue);
+    font-weight: 600;
+}
+
+label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+select, input[type="text"], input[type="number"] {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 12px 14px;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    transition: var(--transition);
+}
+
+select option {
+    color: #0f172a;
+    background-color: #ffffff;
+}
+
+select:hover:not(:disabled), input[type="text"]:hover, input[type="number"]:hover {
+    border-color: var(--border-hover);
+    background-color: rgba(255, 255, 255, 0.06);
+}
+
+select:focus, input[type="text"]:focus, input[type="number"]:focus {
+    border-color: var(--primary);
+    background-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+select:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    margin: 12px 0;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+.range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+button {
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#search-btn {
+    background: linear-gradient(135deg, var(--primary), #8b5cf6);
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    margin-top: 10px;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+#search-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+#search-btn:active {
+    transform: translateY(0);
+}
+
+.spinner {
+    font-size: 16px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.sidebar-footer {
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-footer p {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.badge {
+    align-self: flex-start;
+    background-color: var(--primary-light);
+    color: var(--accent-blue);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Main Content Area */
+.main-content {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 24px;
+}
+
+.header-title h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 6px;
+}
+
+.header-title p {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    background-color: rgba(255, 255, 255, 0.03);
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--accent-green);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+/* Dashboard Body */
+.dashboard-body {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* KPI Cards Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+}
+
+.kpi-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: var(--transition);
+    backdrop-filter: blur(10px);
+}
+
+.kpi-card:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.kpi-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+}
+
+.kpi-icon-wrapper.blue { background-color: rgba(56, 189, 248, 0.15); color: var(--accent-blue); }
+.kpi-icon-wrapper.green { background-color: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+.kpi-icon-wrapper.purple { background-color: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+.kpi-icon-wrapper.gold { background-color: rgba(251, 191, 36, 0.15); color: var(--accent-gold); }
+
+.kpi-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+
+.kpi-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.kpi-info h3 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.kpi-subtext {
+    font-size: 11px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.max-deal-card .kpi-info {
+    flex-grow: 1;
+}
+
+/* Charts Cards Layout */
+.chart-row-1 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.chart-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.chart-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-header h4 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-legend {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    height: 280px;
+}
+
+.doughnut-wrapper {
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Insights Panel style */
+.insights-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    gap: 20px;
+}
+
+.stats-summary-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stats-summary-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.stats-summary-list li:last-child {
+    border-bottom: none;
+}
+
+.summary-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.summary-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.insight-box {
+    background-color: rgba(99, 102, 241, 0.08);
+    border-left: 4px solid var(--primary);
+    padding: 16px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.insight-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.insight-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+/* Detailed Transaction Table Card */
+.table-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.table-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.table-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.table-title h4 {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.table-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.table-filters {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.filter-input-wrapper {
+    position: relative;
+}
+
+.filter-input-wrapper i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.filter-input-wrapper input {
+    padding-left: 36px;
+    width: 200px;
+    height: 38px;
+    font-size: 13px;
+}
+
+.filter-size-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-size-range input {
+    width: 90px;
+    height: 38px;
+    font-size: 13px;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.filter-size-range span {
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    height: 38px;
+    gap: 6px;
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: var(--border-hover);
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    text-align: left;
+}
+
+th {
+    background-color: rgba(255, 255, 255, 0.02);
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+th.sortable {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+th.sortable:hover {
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.04);
+}
+
+th.sortable i {
+    font-size: 10px;
+    margin-left: 4px;
+    opacity: 0.5;
+}
+
+td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+}
+
+tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.text-right {
+    text-align: right;
+}
+
+.table-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 0;
+    gap: 16px;
+    color: var(--text-muted);
+}
+
+.table-empty-state i {
+    font-size: 38px;
+}
+
+.table-empty-state p {
+    font-size: 14px;
+}
+
+/* Empty Dashboard State (Before Selection) */
+.empty-dashboard-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 400px;
+}
+
+.empty-state-content {
+    max-width: 500px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.animated-icon-container {
+    position: relative;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.city-bg-icon {
+    font-size: 70px;
+    color: rgba(255, 255, 255, 0.02);
+    position: absolute;
+    bottom: 0;
+    animation: floatBg 6s ease-in-out infinite;
+}
+
+.main-state-icon {
+    font-size: 50px;
+    color: var(--primary);
+    position: relative;
+    z-index: 2;
+    animation: floatIcon 3s ease-in-out infinite;
+}
+
+@keyframes floatBg {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-8px) scale(1.05); }
+}
+
+@keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.empty-state-content h3 {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.empty-state-content p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.empty-state-features {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+    background-color: rgba(255, 255, 255, 0.02);
+    padding: 6px 12px;
+    border-radius: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.feature-item i {
+    color: var(--primary);
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .chart-row-1, .chart-row-2 {
+        grid-template-columns: 1fr;
+    }
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 860px) {
+    .app-container {
+        flex-direction: column;
+    }
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 24px;
+    }
+    .main-content {
+        padding: 24px;
+        height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+    .table-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-input-wrapper input {
+        width: 100%;
+    }
+}
+
+/* --- Kakao Map Integration Custom Styles --- */
+.table-map-layout {
+    display: flex;
+    gap: 24px;
+    align-items: stretch;
+    width: 100%;
+}
+
+.table-map-layout .table-card {
+    flex: 1.4;
+    min-width: 0;
+}
+
+.table-map-layout .map-card {
+    flex: 1;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    backdrop-filter: blur(10px);
+    min-height: 520px;
+    transition: var(--transition);
+}
+
+.table-map-layout .map-card:hover {
+    border-color: var(--border-hover);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+#map {
+    width: 100%;
+    flex-grow: 1;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background-color: #16192b;
+    min-height: 400px;
+}
+
+/* Clickable transaction table rows */
+#transaction-table tbody tr {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+#transaction-table tbody tr:hover td {
+    background-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+/* Custom Overlay for dark theme Kakao Map */
+.custom-overlay {
+    background: #0b0f19;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-size: 11px;
+    position: relative;
+    bottom: 54px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.custom-overlay::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background: #0b0f19;
+    border-right: 1px solid rgba(99, 102, 241, 0.3);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.custom-overlay h5 {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--accent-blue);
+    font-size: 12px;
+}
+
+.custom-overlay p {
+    margin: 2px 0;
+    color: var(--text-secondary);
+}
+
+.custom-overlay .overlay-price {
+    font-weight: 600;
+    color: var(--accent-gold);
+}
+
+@media (max-width: 1200px) {
+    .table-map-layout {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-map-layout .map-card {
+        min-height: 450px;
+    }
+    
+    #map {
+        min-height: 350px;
+    }
+}
+
+/* Leaflet Dark Theme Popup Styles */
+.leaflet-popup-content-wrapper, .leaflet-popup-tip {
+    background: #0b0f19 !important;
+    color: var(--text-primary) !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+    border-radius: var(--radius-sm) !important;
+}
+
+.leaflet-popup-content {
+    margin: 12px 16px !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: var(--text-secondary) !important;
+    padding: 6px 8px 0 0 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+    color: var(--accent-red) !important;
+}
+
+
+
+</style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="fa-solid fa-chart-line logo-icon"></i>
+                <div class="logo-text">
+                    <h1>APT.STAT</h1>
+                    <span>실거래가 트렌드 분석</span>
+                </div>
+            </div>
+            
+            <form id="search-form" class="search-form">
+                <div class="form-group">
+                    <label for="sido-select"><i class="fa-solid fa-map-location-dot"></i> 시/도</label>
+                    <select id="sido-select" required>
+                        <option value="" disabled selected>시/도 선택</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sigungu-select"><i class="fa-solid fa-location-dot"></i> 시/군/구</label>
+                    <select id="sigungu-select" required disabled>
+                        <option value="" disabled selected>시/군/구 선택</option>
+                    </select>
+                </div>
+                
+                <div class="form-group row">
+                    <div class="col">
+                        <label for="year-select"><i class="fa-solid fa-calendar-days"></i> 연도</label>
+                        <select id="year-select" required>
+                            <!-- Will be dynamically populated, e.g. 2020 ~ Current Year -->
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="month-select"><i class="fa-solid fa-calendar"></i> 월</label>
+                        <select id="month-select" required>
+                            <!-- 1 ~ 12 -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="label-with-val">
+                        <label for="trend-months"><i class="fa-solid fa-clock-rotate-left"></i> 분석 기간</label>
+                        <span id="trend-val">6개월</span>
+                    </div>
+                    <input type="range" id="trend-months" min="3" max="12" value="6" step="1">
+                    <div class="range-labels">
+                        <span>3개월</span>
+                        <span>12개월</span>
+                    </div>
+                </div>
+                
+                <button type="submit" id="search-btn">
+                    <span id="btn-text">통계 분석 실행</span>
+                    <span id="btn-spinner" class="spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                </button>
+            </form>
+            
+            <div class="sidebar-footer">
+                <p>국토교통부 실거래 상세 자료 기반</p>
+                <span class="badge">MVP Version</span>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="main-content">
+            <!-- Welcome/Alert Header -->
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h2 id="search-title-text">아파트 실거래가 대시보드</h2>
+                    <p id="search-subtitle-text">시작하려면 왼쪽에서 지역과 연월을 선택하고 분석을 실행하세요.</p>
+                </div>
+                <div class="theme-status">
+                    <div class="status-indicator">
+                        <span class="pulse-dot"></span>
+                        <span id="connection-status">API 대기 중</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Body (Hidden initially or showing empty state) -->
+            <div id="dashboard-body" class="dashboard-body hidden">
+                
+                <!-- KPI Cards Row -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrapper blue">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">평균 거래금액</span>
+                            <h3 id="kpi-avg-price">-</h3>
+                            <p class="kpi-subtext" id="kpi-avg-price-sub">선택 지역 기준</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrapper green">
+                            <i class="fa-solid fa-house-circle-check"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">거래 건수</span>
+                            <h3 id="kpi-total-deals">-</h3>
+                            <p class="kpi-subtext" id="kpi-total-deals-sub">해당 월 거래량</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrapper purple">
+                            <i class="fa-solid fa-ruler-combined"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">평당 평균 가격</span>
+                            <h3 id="kpi-pyeong-price">-</h3>
+                            <p class="kpi-subtext">3.3㎡ (1평) 기준</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card max-deal-card">
+                        <div class="kpi-icon-wrapper gold">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">최고 거래가 아파트</span>
+                            <h3 id="kpi-max-price">-</h3>
+                            <p class="kpi-subtext" id="kpi-max-desc">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid Section -->
+                <div class="chart-row-1">
+                    <!-- Price & Volume Historical Trend -->
+                    <div class="chart-card trend-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-chart-area"></i> 실거래가 및 거래량 추이</h4>
+                            <span class="card-legend">선택한 기간 동안의 시세 변화 및 거래량 흐름</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Size Class Statistics -->
+                    <div class="chart-card size-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-chart-column"></i> 전용면적별 평균 거래가</h4>
+                            <span class="card-legend">평형대별 거래 금액 비교</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="sizeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-row-2">
+                    <!-- Price Distribution (Doughnut) -->
+                    <div class="chart-card price-dist-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-chart-pie"></i> 거래 금액대별 분포</h4>
+                            <span class="card-legend">거래 금액대별 비중</span>
+                        </div>
+                        <div class="chart-wrapper doughnut-wrapper">
+                            <canvas id="priceDistChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Summary / Insights -->
+                    <div class="chart-card insights-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-magnifying-glass-chart"></i> 분석 요약 및 지표</h4>
+                            <span class="card-legend">수집된 데이터 통계 요약</span>
+                        </div>
+                        <div class="insights-content">
+                            <ul class="stats-summary-list">
+                                <li>
+                                    <span class="summary-label">최저 거래 금액</span>
+                                    <span class="summary-value" id="stat-min-deal">-</span>
+                                </li>
+                                <li>
+                                    <span class="summary-label">평균 전용면적</span>
+                                    <span class="summary-value" id="stat-avg-area">-</span>
+                                </li>
+                                <li>
+                                    <span class="summary-label">평균 거래 층수</span>
+                                    <span class="summary-value" id="stat-avg-floor">-</span>
+                                </li>
+                                <li>
+                                    <span class="summary-label">노후도 분석 (평균 건축년도)</span>
+                                    <span class="summary-value" id="stat-avg-build-year">-</span>
+                                </li>
+                            </ul>
+                            
+                            <div class="insight-box">
+                                <div class="insight-title"><i class="fa-solid fa-circle-info"></i> 분석 가이드</div>
+                                <p class="insight-text" id="insight-dynamic-text">
+                                    상세 거래 목록은 하단 테이블에서 필터링하거나 정렬하여 자세히 확인하실 수 있습니다. 분석 기간 슬라이더를 늘리면 더 장기적인 트렌드 차트를 볼 수 있습니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Log Table & Map Layout -->
+                <div class="table-map-layout">
+                    <!-- Transaction Log Table -->
+                    <div class="table-card">
+                        <div class="table-card-header">
+                            <div class="table-title">
+                                <h4><i class="fa-solid fa-list-ul"></i> 실거래 상세 내역</h4>
+                                <span class="table-subtitle" id="table-subtitle-count">총 0건의 거래</span>
+                            </div>
+                            <div class="table-filters">
+                                <div class="filter-input-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="table-search-name" placeholder="아파트명 검색...">
+                                </div>
+                                <div class="filter-size-range">
+                                    <input type="number" id="filter-min-size" placeholder="최소 ㎡" min="0">
+                                    <span>~</span>
+                                    <input type="number" id="filter-max-size" placeholder="최대 ㎡" min="0">
+                                </div>
+                                <button id="reset-filters-btn" class="btn-secondary"><i class="fa-solid fa-rotate-left"></i> 초기화</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="transaction-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="dealDay" class="sortable">계약일 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="umdNm" class="sortable">법정동 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="aptNm" class="sortable">아파트명 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="dealAmount" class="sortable text-right">거래 금액 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="excluUseAr" class="sortable text-right">전용면적 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="floor" class="sortable text-right">층 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="buildYear" class="sortable text-right">건축년도 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="pyeongPrice" class="sortable text-right">평당 단가 <i class="fa-solid fa-sort"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transaction-table-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Empty Table State -->
+                        <div id="table-empty-state" class="table-empty-state hidden">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <p>검색 조건에 맞는 실거래 데이터가 존재하지 않습니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- Kakao Map Card -->
+                    <div class="map-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-map-location-dot"></i> 아파트 위치 지도</h4>
+                            <span class="card-legend">거래 아파트 위치 (목록 클릭 시 이동)</span>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Empty State / Loading State (Before first search) -->
+            <div id="empty-dashboard-state" class="empty-dashboard-state">
+                <div class="empty-state-content">
+                    <div class="animated-icon-container">
+                        <i class="fa-solid fa-city city-bg-icon"></i>
+                        <i class="fa-solid fa-magnifying-glass-chart main-state-icon"></i>
+                    </div>
+                    <h3>아파트 실거래 통계 분석 시스템</h3>
+                    <p>
+                        좌측 메뉴에서 분석을 진행할 지역(시/도, 시/군/구)과 원하는 기준 월을 선택해 주세요.<br>
+                        국토교통부 API를 실시간으로 조회하여 데이터 통계 및 시계열 차트를 즉시 생성합니다.
+                    </p>
+                    <div class="empty-state-features">
+                        <div class="feature-item">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>실거래가 추이 시각화</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-database"></i>
+                            <span>로컬 SQLite 고속 캐싱</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                            <span>면적/금액대별 정밀 분석</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=0141e418b151b2064f1a81e48eb26a57&libraries=services"></script>
+    <script>
+
+    // Embedded region code database
+    const REGION_DATA = {"서울특별시": {"종로구": "11110", "중구": "11140", "용산구": "11170", "성동구": "11200", "광진구": "11215", "동대문구": "11230", "중랑구": "11260", "성북구": "11290", "강북구": "11305", "도봉구": "11320", "노원구": "11350", "은평구": "11380", "서대문구": "11410", "마포구": "11440", "양천구": "11470", "강서구": "11500", "구로구": "11530", "금천구": "11545", "영등포구": "11560", "동작구": "11590", "관악구": "11620", "서초구": "11650", "강남구": "11680", "송파구": "11710", "강동구": "11740"}, "부산광역시": {"중구": "26110", "서구": "26140", "동구": "26170", "영도구": "26200", "부산진구": "26230", "동래구": "26260", "남구": "26290", "북구": "26320", "해운대구": "26350", "사하구": "26380", "금정구": "26410", "강서구": "26440", "연제구": "26470", "수영구": "26500", "사상구": "26530", "기장군": "26710"}, "대구광역시": {"중구": "27110", "동구": "27140", "서구": "27170", "남구": "27200", "북구": "27230", "수성구": "27260", "달서구": "27290", "달성군": "27710"}, "인천광역시": {"중구": "28110", "동구": "28140", "남구": "28170", "연수구": "28185", "남동구": "28200", "부평구": "28237", "계양구": "28245", "서구": "28260", "강화군": "28710", "옹진군": "28720"}, "광주광역시": {"동구": "29110", "서구": "29140", "남구": "29155", "북구": "29170", "광산구": "29200"}, "대전광역시": {"동구": "30110", "중구": "30140", "서구": "30170", "유성구": "30200", "대덕구": "30230"}, "울산광역시": {"중구": "31110", "남구": "31140", "동구": "31170", "북구": "31200", "울주군": "31710"}, "경기도": {"수원시 장안구": "41111", "수원시 권선구": "41113", "수원시 팔달구": "41115", "수원시 영통구": "41117", "성남시 수정구": "41131", "성남시 중원구": "41133", "성남시 분당구": "41135", "의정부시": "41150", "안양시 만안구": "41171", "안양시 동안구": "41173", "부천시": "41190", "광명시": "41210", "평택시": "41220", "동두천시": "41250", "안산시 상록구": "41271", "안산시 단원구": "41273", "고양시 덕양구": "41281", "고양시 일산동구": "41285", "고양시 일산서구": "41287", "과천시": "41290", "구리시": "41310", "남양주시": "41360", "오산시": "41370", "시흥시": "41390", "군포시": "41410", "의왕시": "41430", "하남시": "41450", "용인시 처인구": "41461", "용인시 기흥구": "41463", "용인시 수지구": "41465", "파주시": "41480", "이천시": "41500", "안성시": "41550", "김포시": "41570", "화성시": "41590", "광주시": "41610", "양주시": "41630", "포천시": "41650", "여주시": "41670", "연천군": "41800", "가평군": "41820", "양평군": "41830"}, "강원도": {"춘천시": "42110", "원주시": "42130", "강릉시": "42150", "동해시": "42170", "태백시": "42190", "속초시": "42210", "삼척시": "42230", "홍천군": "42720", "횡성군": "42730", "영월군": "42750", "평창군": "42760", "정선군": "42770", "철원군": "42780", "화천군": "42790", "양구군": "42800", "인제군": "42810", "고성군": "42820", "양양군": "42830"}, "충청북도": {"청주시 상당구": "43111", "청주시 서원구": "43112", "청주시 흥덕구": "43113", "청주시 청원구": "43114", "충주시": "43130", "제천시": "43150", "보은군": "43720", "옥천군": "43730", "영동군": "43740", "증평군": "43745", "진천군": "43750", "괴산군": "43760", "음성군": "43770", "단양군": "43800"}, "충청남도": {"천안시 동남구": "44131", "천안시 서북구": "44133", "공주시": "44150", "보령시": "44180", "아산시": "44200", "서산시": "44210", "논산시": "44230", "계룡시": "44250", "당진시": "44270", "금산군": "44710", "부여군": "44760", "서천군": "44770", "청양군": "44790", "홍성군": "44800", "예산군": "44810", "태안군": "44825"}, "전라북도": {"전주시 완산구": "45111", "전주시 덕진구": "45113", "군산시": "45130", "익산시": "45140", "정읍시": "45180", "남원시": "45190", "김제시": "45210", "완주군": "45710", "진안군": "45720", "무주군": "45730", "장수군": "45740", "임실군": "45750", "순창군": "45770", "고창군": "45790", "부안군": "45800"}, "전라남도": {"목포시": "46110", "여수시": "46130", "순천시": "46150", "나주시": "46170", "광양시": "46230", "담양군": "46710", "곡성군": "46720", "구례군": "46730", "고흥군": "46770", "보성군": "46780", "화순군": "46790", "장흥군": "46800", "강진군": "46810", "해남군": "46820", "영암군": "46830", "무안군": "46840", "함평군": "46860", "영광군": "46870", "장성군": "46880", "완도군": "46890", "진도군": "46900", "신안군": "46910"}, "경상북도": {"포항시 남구": "47111", "포항시 북구": "47113", "경주시": "47130", "김천시": "47150", "안동시": "47170", "구미시": "47190", "영주시": "47210", "영천시": "47230", "상주시": "47250", "문경시": "47280", "경산시": "47290", "군위군": "47720", "의성군": "47730", "청송군": "47750", "영양군": "47760", "영덕군": "47770", "청도군": "47820", "고령군": "47830", "성주군": "47840", "칠곡군": "47850", "예천군": "47900", "봉화군": "47920", "울진군": "47930", "울릉군": "47940"}, "경상남도": {"창원시 의창구": "48121", "창원시 성산구": "48123", "창원시 마산합포구": "48125", "창원시 마산회원구": "48127", "창원시 진해구": "48129", "진주시": "48170", "통영시": "48220", "사천시": "48240", "김해시": "48250", "밀양시": "48270", "거제시": "48310", "양산시": "48330", "의령군": "48720", "함안군": "48730", "창녕군": "48740", "고성군": "48820", "남해군": "48840", "하동군": "48850", "산청군": "48860", "함양군": "48870", "거창군": "48880", "합천군": "48890"}, "제주특별자치도": {"제주시": "50110", "서귀포시": "50130"}};
+    
+    // Embedded API Keys from .env
+    const EMBEDDED_API_KEY = "75b36967e9b9578670a97bf33ff629c1625bb6283d534aa954ef59c3e42ce0ce";
+    const EMBEDDED_KAKAO_KEY = "0141e418b151b2064f1a81e48eb26a57";
+    
+    // Global state variables
+    let apiKey = EMBEDDED_API_KEY || "";
+    let currentTransactions = [];
+    let tableSortConfig = { key: 'dealDay', asc: false };
+
+    // Chart.js instances
+    let trendChartInstance = null;
+    let sizeChartInstance = null;
+    let priceDistChartInstance = null;
+
+    // Kakao Map instances
+    let map = null;
+    let geocoder = null;
+    let activeMarkers = [];
+    let activeCustomOverlay = null;
+
+    // Format price to Korean style (e.g., 143500 만원 -> 14억 3,500만원)
+    function formatPrice(amountManwon) {
+        if (!amountManwon || amountManwon === 0) return "-";
+        
+        const amount = Number(amountManwon);
+        const eok = Math.floor(amount / 10000);
+        const rest = amount % 10000;
+        
+        let result = "";
+        if (eok > 0) {
+            result += `${eok}억 `;
+        }
+        if (rest > 0) {
+            result += `${rest.toLocaleString()}만원`;
+        } else {
+            result += "원";
+        }
+        return result.trim();
+    }
+
+    // Populate year selector (current year down to 2015)
+    function populateYearSelect() {
+        const yearSelect = document.getElementById("year-select");
+        const currentYear = new Date().getFullYear();
+        yearSelect.innerHTML = "";
+        
+        for (let y = currentYear; y >= 2015; y--) {
+            const option = document.createElement("option");
+            option.value = y;
+            option.textContent = `${y}년`;
+            if (y === 2024) { // Default to 2024 since data is guaranteed
+                option.selected = true;
+            }
+            yearSelect.appendChild(option);
+        }
+    }
+
+    // Populate month selector (1 to 12)
+    function populateMonthSelect() {
+        const monthSelect = document.getElementById("month-select");
+        monthSelect.innerHTML = "";
+        
+        for (let m = 1; m <= 12; m++) {
+            const option = document.createElement("option");
+            option.value = m;
+            option.textContent = `${m}월`;
+            if (m === 7) { // Default to July
+                option.selected = true;
+            }
+            monthSelect.appendChild(option);
+        }
+    }
+
+    // Check if API key is available via embedded, local server or localStorage
+    async function checkApiKey() {
+        const apiKeyGroup = document.getElementById("api-key-group");
+        const apiKeyInput = document.getElementById("api-key-input");
+        
+        // 1. Try embedded key first
+        if (EMBEDDED_API_KEY) {
+            apiKey = EMBEDDED_API_KEY;
+            if (apiKeyGroup) apiKeyGroup.classList.add("hidden");
+            document.getElementById("connection-status").textContent = "임베디드 API 키 사용";
+            console.log("API key loaded from embedded .env.");
+            return true;
+        }
+        
+        // 2. Try fetching from server
+        try {
+            const res = await fetch("/api/key");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.key) {
+                    apiKey = data.key;
+                    if (apiKeyGroup) apiKeyGroup.classList.add("hidden");
+                    document.getElementById("connection-status").textContent = "서버 API 키 로드됨";
+                    console.log("API key loaded from server.");
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.log("Local API server key fetch bypassed.");
+        }
+        
+        // 3. Try loading from localStorage
+        const savedKey = localStorage.getItem("apt_api_key");
+        if (savedKey) {
+            apiKey = savedKey;
+            if (apiKeyInput) apiKeyInput.value = savedKey;
+            if (apiKeyGroup) apiKeyGroup.classList.remove("hidden");
+            document.getElementById("connection-status").textContent = "로컬 저장 키 사용";
+            console.log("API key loaded from localStorage.");
+            return true;
+        } else {
+            // Force user to input key since no key is detected
+            if (apiKeyGroup) apiKeyGroup.classList.remove("hidden");
+            document.getElementById("connection-status").textContent = "인증키 입력 필요";
+            return false;
+        }
+    }
+
+    // Initialize Kakao Map
+    function initKakaoMap() {
+        if (typeof kakao === "undefined" || !kakao.maps) {
+            console.error("Kakao Map SDK not loaded.");
+            document.getElementById("map").innerHTML = 
+                '<div style="padding:20px; color:var(--text-muted); text-align:center;">카카오 지도 SDK 로드 실패. API 키를 확인해 주세요.</div>';
+            return;
+        }
+        
+        try {
+            const mapContainer = document.getElementById('map');
+            const mapOption = { 
+                center: new kakao.maps.LatLng(37.566826, 126.9786567), // Default: Seoul City Hall
+                level: 7 // Zoom level
+            }; 
+
+            map = new kakao.maps.Map(mapContainer, mapOption); 
+            geocoder = new kakao.maps.services.Geocoder();
+            
+            // Add zoom control
+            const zoomControl = new kakao.maps.ZoomControl();
+            map.addControl(zoomControl, kakao.maps.ControlPosition.RIGHT);
+            console.log("Kakao Map initialized successfully.");
+        } catch (e) {
+            console.error("Error initializing Kakao Map:", e);
+        }
+    }
+
+    // Clear all markers from map
+    function clearMarkers() {
+        activeMarkers.forEach(marker => marker.setMap(null));
+        activeMarkers = [];
+        if (activeCustomOverlay) {
+            activeCustomOverlay.setMap(null);
+            activeCustomOverlay = null;
+        }
+    }
+
+    // Show Custom Overlay popup for an apartment
+    function showOverlayForApt(apt, coords) {
+        if (activeCustomOverlay) {
+            activeCustomOverlay.setMap(null);
+        }
+        
+        const deals = apt.deals;
+        const prices = deals.map(d => d.dealAmount);
+        const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const maxPrice = Math.max(...prices);
+        const latestDeal = deals[0];
+        
+        const content = `
+            <div class="custom-overlay">
+                <h5>${apt.aptNm}</h5>
+                <p>평균가: <span class="overlay-price">${formatPrice(avgPrice)}</span></p>
+                <p>최고가: <span class="overlay-price">${formatPrice(maxPrice)}</span></p>
+                <p>거래량: ${deals.length}건 (${latestDeal.excluUseAr}㎡ / ${latestDeal.pyeong}평)</p>
+            </div>
+        `;
+        
+        activeCustomOverlay = new kakao.maps.CustomOverlay({
+            content: content,
+            position: coords,
+            yAnchor: 1
+        });
+        
+        activeCustomOverlay.setMap(map);
+        map.panTo(coords);
+    }
+
+    // Map unique apartments and set markers
+    function mapTransactionsToMap(transactions, sido, sigungu) {
+        if (!map || !geocoder) return;
+        clearMarkers();
+        
+        if (!transactions || transactions.length === 0) return;
+        
+        const aptGroup = {};
+        transactions.forEach(t => {
+            if (!aptGroup[t.aptNm]) {
+                aptGroup[t.aptNm] = {
+                    aptNm: t.aptNm,
+                    umdNm: t.umdNm,
+                    deals: []
+                };
+            }
+            aptGroup[t.aptNm].deals.push(t);
+        });
+        
+        const bounds = new kakao.maps.LatLngBounds();
+        let markerCount = 0;
+        const totalApts = Object.keys(aptGroup).length;
+        
+        Object.values(aptGroup).forEach(apt => {
+            const fullAddress = `${sido} ${sigungu} ${apt.umdNm} ${apt.aptNm}`;
+            
+            geocoder.addressSearch(fullAddress, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    
+                    const marker = new kakao.maps.Marker({
+                        map: map,
+                        position: coords,
+                        title: apt.aptNm
+                    });
+                    
+                    activeMarkers.push(marker);
+                    bounds.extend(coords);
+                    markerCount++;
+                    
+                    kakao.maps.event.addListener(marker, 'click', function() {
+                        showOverlayForApt(apt, coords);
+                    });
+                    
+                    if (markerCount === totalApts) {
+                        map.setBounds(bounds);
+                    }
+                } else {
+                    const fallbackAddress = `${sido} ${sigungu} ${apt.umdNm}`;
+                    geocoder.addressSearch(fallbackAddress, function(result, status) {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                            
+                            const marker = new kakao.maps.Marker({
+                                map: map,
+                                position: coords,
+                                title: apt.aptNm
+                            });
+                            
+                            activeMarkers.push(marker);
+                            bounds.extend(coords);
+                            markerCount++;
+                            
+                            kakao.maps.event.addListener(marker, 'click', function() {
+                                showOverlayForApt(apt, coords);
+                            });
+                            
+                            if (markerCount === totalApts) {
+                                map.setBounds(bounds);
+                            }
+                        } else {
+                            markerCount++;
+                            if (markerCount === totalApts) {
+                                map.setBounds(bounds);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    // Handle table row click to center map on the selected apartment
+    function handleTableClick(aptNm, umdNm) {
+        if (!map || !geocoder) return;
+        
+        const sido = document.getElementById("sido-select").value;
+        const sigunguSelect = document.getElementById("sigungu-select");
+        const sigungu = sigunguSelect.options[sigunguSelect.selectedIndex].text;
+        
+        const fullAddress = `${sido} ${sigungu} ${umdNm} ${aptNm}`;
+        
+        geocoder.addressSearch(fullAddress, function(result, status) {
+            if (status === kakao.maps.services.Status.OK) {
+                const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                
+                const matchedDeals = currentTransactions.filter(t => t.aptNm === aptNm);
+                const aptObj = {
+                    aptNm: aptNm,
+                    umdNm: umdNm,
+                    deals: matchedDeals
+                };
+                
+                showOverlayForApt(aptObj, coords);
+            } else {
+                const fallbackAddress = `${sido} ${sigungu} ${umdNm}`;
+                geocoder.addressSearch(fallbackAddress, function(result, status) {
+                    if (status === kakao.maps.services.Status.OK) {
+                        const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                        
+                        const matchedDeals = currentTransactions.filter(t => t.aptNm === aptNm);
+                        const aptObj = {
+                            aptNm: aptNm,
+                            umdNm: umdNm,
+                            deals: matchedDeals
+                        };
+                        
+                        showOverlayForApt(aptObj, coords);
+                    }
+                });
+            }
+        });
+    }
+
+    // Load Sido regions from internal object
+    async function loadRegions() {
+        const sidoSelect = document.getElementById("sido-select");
+        sidoSelect.innerHTML = '<option value="" disabled selected>시/도 선택</option>';
+        
+        Object.keys(REGION_DATA).sort().forEach(sido => {
+            const option = document.createElement("option");
+            option.value = sido;
+            option.textContent = sido;
+            sidoSelect.appendChild(option);
+        });
+        
+        await checkApiKey();
+    }
+
+    // Update Sigungu when Sido changes
+    function handleSidoChange() {
+        const sidoSelect = document.getElementById("sido-select");
+        const sigunguSelect = document.getElementById("sigungu-select");
+        
+        const selectedSido = sidoSelect.value;
+        sigunguSelect.innerHTML = '<option value="" disabled selected>시/군/구 선택</option>';
+        sigunguSelect.disabled = true;
+        
+        if (selectedSido && REGION_DATA[selectedSido]) {
+            const sigungus = REGION_DATA[selectedSido];
+            
+            Object.keys(sigungus).sort().forEach(sigungu => {
+                const option = document.createElement("option");
+                option.value = sigungus[sigungu]; // 5-digit code
+                option.textContent = sigungu;
+                sigunguSelect.appendChild(option);
+            });
+            
+            sigunguSelect.disabled = false;
+        }
+    }
+
+    // Hybrid Data Fetching: local cache server vs direct public API
+    async function fetchAptData(lawdCd, year, month, monthsCount) {
+        const isLocalServer = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        
+        if (isLocalServer && window.location.port === "8000") {
+            try {
+                console.log("Running in server mode. Querying local python cache server...");
+                const url = `/api/search?lawd_cd=${lawdCd}&year=${year}&month=${month}&months_count=${monthsCount}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    return await res.json();
+                }
+            } catch (e) {
+                console.log("Local server API request failed, falling back to direct API fetch:", e);
+            }
+        }
+        
+        if (!apiKey) {
+            throw new Error("공공데이터 API 인증키가 필요합니다. 사이드바에 입력해 주세요.");
+        }
+        
+        console.log("Running in standalone mode. Fetching directly from data.go.kr...");
+        const targetMonths = getPastMonthsList(year, month, monthsCount);
+        const historicalTrend = [];
+        let activeDeals = [];
+        let activeStats = null;
+        
+        const activeYmd = `${year}${String(month).padStart(2, '0')}`;
+        
+        for (const ymd of [...targetMonths].reverse()) {
+            const deals = await fetchAndCleanDirectAPI(lawdCd, ymd);
+            const stats = calculateStatsJS(deals);
+            
+            const displayMonth = `${ymd.substring(0, 4)}.${ymd.substring(4)}`;
+            historicalTrend.push({
+                month: displayMonth,
+                avg_price: stats.avg_price,
+                total_deals: stats.total_deals,
+                avg_pyeong_price: stats.avg_pyeong_price
+            });
+            
+            if (ymd === activeYmd) {
+                activeDeals = deals;
+                activeStats = stats;
+            }
+        }
+        
+        if (!activeStats) {
+            activeStats = calculateStatsJS([]);
+        }
+        
+        return {
+            active_month: `${year}.${String(month).padStart(2, '0')}`,
+            transactions: activeDeals,
+            stats: activeStats,
+            historical_trend: historicalTrend
+        };
+    }
+
+    function getPastMonthsList(year, month, count) {
+        const res = [];
+        let currY = parseInt(year);
+        let currM = parseInt(month);
+        for (let i = 0; i < count; i++) {
+            res.push(`${currY}${String(currM).padStart(2, '0')}`);
+            currM--;
+            if (currM === 0) {
+                currM = 12;
+                currY--;
+            }
+        }
+        return res;
+    }
+
+    async function fetchAndCleanDirectAPI(lawdCd, dealYmd) {
+        const cacheKey = `cache_${lawdCd}_${dealYmd}`;
+        const cached = sessionStorage.getItem(cacheKey);
+        if (cached) {
+            console.log(`Session Cache Hit: ${lawdCd} - ${dealYmd}`);
+            return JSON.parse(cached);
+        }
+        
+        const url = `https://apis.data.go.kr/1613000/RTMSDataSvcAptTrade/getRTMSDataSvcAptTrade?serviceKey=${apiKey}&LAWD_CD=${lawdCd}&DEAL_YMD=${dealYmd}&numOfRows=2000&pageNo=1&_type=json`;
+        
+        console.log(`Session Cache Miss. Fetching: ${url.substring(0, 120)}...`);
+        const res = await fetch(url);
+        if (!res.ok) {
+            throw new Error(`Public API returned status ${res.status}`);
+        }
+        
+        const data = await res.json();
+        const header = data?.response?.header || {};
+        if (header.resultCode !== "000") {
+            throw new Error(`API Error (${header.resultCode}): ${header.resultMsg}`);
+        }
+        
+        const itemsNode = data?.response?.body?.items || {};
+        if (!itemsNode || itemsNode === "") {
+            return [];
+        }
+        
+        let itemList = itemsNode.item || [];
+        if (!Array.isArray(itemList)) {
+            itemList = [itemList];
+        }
+        
+        const cleaned = [];
+        for (const item of itemList) {
+            try {
+                if (String(item.cdealDay || "").trim()) continue;
+                
+                const amountStr = String(item.dealAmount || "0").replace(/,/g, "").trim();
+                const amount = parseInt(amountStr) || 0;
+                if (amount === 0) continue;
+                
+                const areaStr = String(item.excluUseAr || "0").trim();
+                const area = parseFloat(areaStr) || 0.0;
+                if (area === 0.0) continue;
+                
+                const pyeong = area / 3.30578;
+                const pyeongPrice = amount / pyeong;
+                
+                const floorStr = String(item.floor || "0").trim();
+                const floor = parseInt(floorStr) || 0;
+                
+                cleaned.push({
+                    aptNm: String(item.aptNm || "").trim(),
+                    umdNm: String(item.umdNm || "").trim(),
+                    dealAmount: amount,
+                    excluUseAr: area,
+                    pyeong: parseFloat(pyeong.toFixed(2)),
+                    pyeongPrice: parseFloat(pyeongPrice.toFixed(2)),
+                    floor: floor,
+                    dealDay: parseInt(item.dealDay) || 1,
+                    dealMonth: parseInt(item.dealMonth) || 1,
+                    dealYear: parseInt(item.dealYear) || 2000,
+                    buildYear: parseInt(item.buildYear) || 0
+                });
+            } catch (e) {
+                console.error("Item parsing failed:", e);
+            }
+        }
+        
+        try {
+            sessionStorage.setItem(cacheKey, JSON.stringify(cleaned));
+        } catch (e) {
+            console.log("sessionStorage quota exceeded");
+        }
+        
+        return cleaned;
+    }
+
+    function calculateStatsJS(deals) {
+        if (!deals || deals.length === 0) {
+            return {
+                avg_price: 0.0,
+                total_deals: 0,
+                avg_pyeong_price: 0.0,
+                max_deal: null,
+                min_deal: null,
+                size_distribution: {
+                    small: { count: 0, avg_price: 0.0 },
+                    medium_small: { count: 0, avg_price: 0.0 },
+                    medium_large: { count: 0, avg_price: 0.0 },
+                    large: { count: 0, avg_price: 0.0 }
+                },
+                price_distribution: {
+                    under_3: 0,
+                    "3_to_6": 0,
+                    "6_to_9": 0,
+                    "9_to_12": 0,
+                    "12_to_15": 0,
+                    over_15: 0
+                }
+            };
+        }
+        
+        const prices = deals.map(d => d.dealAmount);
+        const pyeongPrices = deals.map(d => d.pyeongPrice);
+        
+        const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+        const avgPyeongPrice = pyeongPrices.reduce((a, b) => a + b, 0) / pyeongPrices.length;
+        
+        let maxDeal = deals[0];
+        let minDeal = deals[0];
+        for (const d of deals) {
+            if (d.dealAmount > maxDeal.dealAmount) maxDeal = d;
+            if (d.dealAmount < minDeal.dealAmount) minDeal = d;
+        }
+        
+        const sizeClasses = {
+            small: { count: 0, sum_price: 0.0 },
+            medium_small: { count: 0, sum_price: 0.0 },
+            medium_large: { count: 0, sum_price: 0.0 },
+            large: { count: 0, sum_price: 0.0 }
+        };
+        
+        for (const d of deals) {
+            const sz = d.excluUseAr;
+            const p = d.dealAmount;
+            if (sz < 60) {
+                sizeClasses.small.count++;
+                sizeClasses.small.sum_price += p;
+            } else if (sz < 85) {
+                sizeClasses.medium_small.count++;
+                sizeClasses.medium_small.sum_price += p;
+            } else if (sz < 135) {
+                sizeClasses.medium_large.count++;
+                sizeClasses.medium_large.sum_price += p;
+            } else {
+                sizeClasses.large.count++;
+                sizeClasses.large.sum_price += p;
+            }
+        }
+        
+        const sizeDistribution = {};
+        for (const [k, v] of Object.entries(sizeClasses)) {
+            sizeDistribution[k] = {
+                count: v.count,
+                avg_price: v.count > 0 ? parseFloat((v.sum_price / v.count).toFixed(2)) : 0.0
+            };
+        }
+        
+        const priceBrackets = {
+            under_3: 0,
+            "3_to_6": 0,
+            "6_to_9": 0,
+            "9_to_12": 0,
+            "12_to_15": 0,
+            over_15: 0
+        };
+        
+        for (const d of deals) {
+            const p = d.dealAmount;
+            if (p < 30000) {
+                priceBrackets.under_3++;
+            } else if (p < 60000) {
+                priceBrackets["3_to_6"]++;
+            } else if (p < 90000) {
+                priceBrackets["6_to_9"]++;
+            } else if (p < 120000) {
+                priceBrackets["9_to_12"]++;
+            } else if (p < 150000) {
+                priceBrackets["12_to_15"]++;
+            } else {
+                priceBrackets.over_15++;
+            }
+        }
+        
+        return {
+            avg_price: parseFloat(avgPrice.toFixed(2)),
+            total_deals: deals.length,
+            avg_pyeong_price: parseFloat(avgPyeongPrice.toFixed(2)),
+            max_deal: maxDeal,
+            min_deal: minDeal,
+            size_distribution: sizeDistribution,
+            price_distribution: priceBrackets
+        };
+    }
+
+    // Run statistics query
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        
+        const sigunguSelect = document.getElementById("sigungu-select");
+        const lawdCd = sigunguSelect.value;
+        const year = document.getElementById("year-select").value;
+        const month = document.getElementById("month-select").value;
+        const monthsCount = document.getElementById("trend-months").value;
+        
+        const sidoText = document.getElementById("sido-select").value;
+        const sigunguText = sigunguSelect.options[sigunguSelect.selectedIndex].text;
+        
+        if (!lawdCd) return;
+        
+        const searchBtn = document.getElementById("search-btn");
+        const btnText = document.getElementById("btn-text");
+        const btnSpinner = document.getElementById("btn-spinner");
+        
+        searchBtn.disabled = true;
+        btnText.textContent = "분석 중...";
+        btnSpinner.classList.remove("hidden");
+        
+        try {
+            const data = await fetchAptData(lawdCd, year, month, monthsCount);
+            
+            updateDashboard(data, sidoText, sigunguText, year, month);
+            
+            document.getElementById("empty-dashboard-state").classList.add("hidden");
+            document.getElementById("dashboard-body").classList.remove("hidden");
+            
+            // Force Kakao Map to recalculate layout now that it is visible
+            if (map) {
+                setTimeout(() => {
+                    map.relayout();
+                }, 100);
+            }
+            
+            mapTransactionsToMap(data.transactions, sidoText, sigunguText);
+        } catch (err) {
+            console.error(err);
+            alert("실거래 데이터를 조회하지 못했습니다: " + err.message);
+        } finally {
+            searchBtn.disabled = false;
+            btnText.textContent = "통계 분석 실행";
+            btnSpinner.classList.add("hidden");
+        }
+    }
+
+    // Update Dashboard UI
+    function updateDashboard(data, sido, sigungu, year, month) {
+        const stats = data.stats;
+        currentTransactions = data.transactions || [];
+        
+        document.getElementById("search-title-text").textContent = `${sido} ${sigungu} 아파트 실거래 분석 (${year}년 ${month}월)`;
+        document.getElementById("search-subtitle-text").textContent = `최근 ${data.historical_trend.length}개월간의 거래 정보 시세 추이 및 상세 거래 리스트입니다.`;
+        
+        document.getElementById("kpi-avg-price").textContent = formatPrice(stats.avg_price);
+        document.getElementById("kpi-total-deals").textContent = `${stats.total_deals.toLocaleString()}건`;
+        document.getElementById("kpi-pyeong-price").textContent = stats.avg_pyeong_price > 0 ? `${Math.round(stats.avg_pyeong_price).toLocaleString()}만원` : "-";
+        
+        document.getElementById("kpi-avg-price-sub").textContent = `${sigungu} 평균 실거래가`;
+        document.getElementById("kpi-total-deals-sub").textContent = `취소 거래 제외 실거래 건수`;
+        
+        const maxDeal = stats.max_deal;
+        if (maxDeal) {
+            document.getElementById("kpi-max-price").textContent = formatPrice(maxDeal.dealAmount);
+            document.getElementById("kpi-max-desc").textContent = `${maxDeal.aptNm} ${maxDeal.floor}층 (${maxDeal.excluUseAr}㎡ / ${maxDeal.pyeong}평)`;
+        } else {
+            document.getElementById("kpi-max-price").textContent = "-";
+            document.getElementById("kpi-max-desc").textContent = "거래 내역 없음";
+        }
+        
+        const minDeal = stats.min_deal;
+        if (minDeal) {
+            document.getElementById("stat-min-deal").textContent = `${formatPrice(minDeal.dealAmount)} (${minDeal.aptNm} ${minDeal.floor}층)`;
+        } else {
+            document.getElementById("stat-min-deal").textContent = "-";
+        }
+        
+        if (currentTransactions.length > 0) {
+            const avgArea = currentTransactions.reduce((acc, curr) => acc + curr.excluUseAr, 0) / currentTransactions.length;
+            const avgPyeong = currentTransactions.reduce((acc, curr) => acc + curr.pyeong, 0) / currentTransactions.length;
+            const avgFloor = currentTransactions.reduce((acc, curr) => acc + curr.floor, 0) / currentTransactions.length;
+            const validBuildYears = currentTransactions.filter(d => d.buildYear > 0);
+            const avgBuild = validBuildYears.length > 0 ? validBuildYears.reduce((acc, curr) => acc + curr.buildYear, 0) / validBuildYears.length : 0;
+            
+            document.getElementById("stat-avg-area").textContent = `${avgArea.toFixed(1)}㎡ (약 ${avgPyeong.toFixed(1)}평)`;
+            document.getElementById("stat-avg-floor").textContent = `${avgFloor.toFixed(1)}층`;
+            
+            const currentYear = new Date().getFullYear();
+            document.getElementById("stat-avg-build-year").textContent = avgBuild > 0 ? `${Math.round(avgBuild)}년 (평균 노후도 ${Math.round(currentYear - avgBuild)}년)` : "-";
+            
+            document.getElementById("insight-dynamic-text").innerHTML = `
+                ${year}년 ${month}월 기준 <strong>${sigungu}</strong>의 평균 아파트 매매가는 <strong>${formatPrice(stats.avg_price)}</strong>이며, 평당 단가는 <strong>${Math.round(stats.avg_pyeong_price).toLocaleString()}만원</strong>입니다. 
+                총 <strong>${stats.total_deals}건</strong>의 실거래가 이루어졌으며, 최고가 거래 단지는 <strong>${maxDeal ? maxDeal.aptNm : '-'}</strong>입니다.
+            `;
+        } else {
+            document.getElementById("stat-avg-area").textContent = "-";
+            document.getElementById("stat-avg-floor").textContent = "-";
+            document.getElementById("stat-avg-build-year").textContent = "-";
+            document.getElementById("insight-dynamic-text").textContent = "해당 월에 등록된 실거래 데이터가 없습니다. 다른 연월을 선택해 분석해 보세요.";
+        }
+        
+        renderTrendChart(data.historical_trend);
+        renderSizeChart(stats.size_distribution);
+        renderPriceDistChart(stats.price_distribution);
+        
+        document.getElementById("table-search-name").value = "";
+        document.getElementById("filter-min-size").value = "";
+        document.getElementById("filter-max-size").value = "";
+        
+        renderTable();
+    }
+
+    // Chart.js render configurations
+    function renderTrendChart(trendData) {
+        const ctx = document.getElementById("trendChart").getContext("2d");
+        if (trendChartInstance) trendChartInstance.destroy();
+        
+        const labels = trendData.map(d => d.month);
+        const avgPrices = trendData.map(d => d.avg_price);
+        const totalDeals = trendData.map(d => d.total_deals);
+        
+        trendChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '거래량 (건)',
+                        data: totalDeals,
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        borderColor: 'rgba(99, 102, 241, 0.8)',
+                        borderWidth: 1.5,
+                        borderRadius: 4,
+                        yAxisID: 'yVolume',
+                        type: 'bar'
+                    },
+                    {
+                        label: '평균 가격 (만원)',
+                        data: avgPrices,
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'transparent',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#38bdf8',
+                        pointBorderColor: '#0b0f19',
+                        pointBorderWidth: 2,
+                        pointRadius: 5,
+                        tension: 0.3,
+                        yAxisID: 'yPrice',
+                        type: 'line'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) label += ': ';
+                                if (context.datasetIndex === 1) {
+                                    label += formatPrice(context.raw);
+                                } else {
+                                    label += context.raw + '건';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                    },
+                    yPrice: {
+                        type: 'linear',
+                        position: 'right',
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: {
+                            color: '#38bdf8',
+                            font: { family: 'Inter' },
+                            callback: function(value) {
+                                return (value / 10000).toFixed(1) + '억';
+                            }
+                        }
+                    },
+                    yVolume: {
+                        type: 'linear',
+                        position: 'left',
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { family: 'Inter' } }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderSizeChart(sizeData) {
+        const ctx = document.getElementById("sizeChart").getContext("2d");
+        if (sizeChartInstance) sizeChartInstance.destroy();
+        
+        const labels = ["소형 (<60㎡)", "중소형 (60~85㎡)", "중대형 (85~135㎡)", "대형 (≥135㎡)"];
+        const values = [
+            sizeData.small ? sizeData.small.avg_price : 0,
+            sizeData.medium_small ? sizeData.medium_small.avg_price : 0,
+            sizeData.medium_large ? sizeData.medium_large.avg_price : 0,
+            sizeData.large ? sizeData.large.avg_price : 0
+        ];
+        
+        sizeChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '평균 가격 (만원)',
+                    data: values,
+                    backgroundColor: [
+                        'rgba(56, 189, 248, 0.25)',
+                        'rgba(16, 185, 129, 0.25)',
+                        'rgba(168, 85, 247, 0.25)',
+                        'rgba(251, 191, 36, 0.25)'
+                    ],
+                    borderColor: [
+                        '#38bdf8',
+                        '#10b981',
+                        '#a855f7',
+                        '#fbbf24'
+                    ],
+                    borderWidth: 1.5,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '평균가: ' + formatPrice(context.raw);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { family: 'Noto Sans KR', size: 10 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: { family: 'Inter' },
+                            callback: function(value) {
+                                return (value / 10000).toFixed(0) + '억';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderPriceDistChart(priceData) {
+        const ctx = document.getElementById("priceDistChart").getContext("2d");
+        if (priceDistChartInstance) priceDistChartInstance.destroy();
+        
+        const labels = ["3억 미만", "3억~6억", "6억~9억", "9억~12억", "12억~15억", "15억 이상"];
+        const values = [
+            priceData.under_3 || 0,
+            priceData["3_to_6"] || 0,
+            priceData["6_to_9"] || 0,
+            priceData["9_to_12"] || 0,
+            priceData["12_to_15"] || 0,
+            priceData.over_15 || 0
+        ];
+        
+        const totalCount = values.reduce((a, b) => a + b, 0);
+        
+        priceDistChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: totalCount > 0 ? values : [1],
+                    backgroundColor: totalCount > 0 ? [
+                        'rgba(148, 163, 184, 0.25)',
+                        'rgba(16, 185, 129, 0.25)',
+                        'rgba(56, 189, 248, 0.25)',
+                        'rgba(99, 102, 241, 0.25)',
+                        'rgba(168, 85, 247, 0.25)',
+                        'rgba(239, 68, 68, 0.25)'
+                    ] : ['rgba(255, 255, 255, 0.05)'],
+                    borderColor: totalCount > 0 ? [
+                        '#94a3b8',
+                        '#10b981',
+                        '#38bdf8',
+                        '#6366f1',
+                        '#a855f7',
+                        '#ef4444'
+                    ] : ['rgba(255, 255, 255, 0.1)'],
+                    borderWidth: 1.5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { color: '#94a3b8', font: { family: 'Noto Sans KR', size: 11 } }
+                    },
+                    tooltip: {
+                        enabled: totalCount > 0,
+                        callbacks: {
+                            label: function(context) {
+                                const value = context.raw;
+                                const percentage = ((value / totalCount) * 100).toFixed(1);
+                                return ` ${context.label}: ${value}건 (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // Render Transaction Log Table
+    function renderTable() {
+        const tableBody = document.getElementById("transaction-table-body");
+        const emptyState = document.getElementById("table-empty-state");
+        const subtitleCount = document.getElementById("table-subtitle-count");
+        
+        tableBody.innerHTML = "";
+        
+        const searchName = document.getElementById("table-search-name").value.toLowerCase().trim();
+        const minSize = parseFloat(document.getElementById("filter-min-size").value) || 0;
+        const maxSize = parseFloat(document.getElementById("filter-max-size").value) || Infinity;
+        
+        let filtered = currentTransactions.filter(t => {
+            const matchesName = t.aptNm.toLowerCase().includes(searchName) || t.umdNm.toLowerCase().includes(searchName);
+            const matchesSize = t.excluUseAr >= minSize && t.excluUseAr <= maxSize;
+            return matchesName && matchesSize;
+        });
+        
+        const sortKey = tableSortConfig.key;
+        const isAsc = tableSortConfig.asc;
+        
+        filtered.sort((a, b) => {
+            let valA = a[sortKey];
+            let valB = b[sortKey];
+            
+            if (typeof valA === 'string') {
+                return isAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+            return isAsc ? valA - valB : valB - valA;
+        });
+        
+        subtitleCount.textContent = `총 ${filtered.length.toLocaleString()}건의 거래 (전체 ${currentTransactions.length.toLocaleString()}건)`;
+        
+        if (filtered.length === 0) {
+            emptyState.classList.remove("hidden");
+            document.getElementById("transaction-table").style.display = "none";
+            return;
+        }
+        
+        emptyState.classList.add("hidden");
+        document.getElementById("transaction-table").style.display = "table";
+        
+        filtered.forEach(t => {
+            const tr = document.createElement("tr");
+            const dealDateStr = `${t.dealDay}일`;
+            const priceStr = formatPrice(t.dealAmount).replace("만원", "");
+            const areaStr = `${t.excluUseAr.toFixed(1)}㎡ / ${t.pyeong}평`;
+            const pyeongPriceStr = `${Math.round(t.pyeongPrice).toLocaleString()}만원`;
+            
+            tr.addEventListener("click", () => {
+                handleTableClick(t.aptNm, t.umdNm);
+            });
+            
+            tr.innerHTML = `
+                <td>${dealDateStr}</td>
+                <td>${t.umdNm}</td>
+                <td><strong>${t.aptNm}</strong></td>
+                <td class="text-right" style="color: var(--accent-blue); font-weight:600;">${priceStr}</td>
+                <td class="text-right">${areaStr}</td>
+                <td class="text-right">${t.floor}층</td>
+                <td class="text-right">${t.buildYear > 0 ? t.buildYear + '년' : '-'}</td>
+                <td class="text-right" style="color: var(--text-secondary);">${pyeongPriceStr}</td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // Bind table headers for sorting
+    function initTableSorting() {
+        const headers = document.querySelectorAll("#transaction-table th.sortable");
+        headers.forEach(header => {
+            header.addEventListener("click", () => {
+                const key = header.getAttribute("data-sort");
+                if (tableSortConfig.key === key) {
+                    tableSortConfig.asc = !tableSortConfig.asc;
+                } else {
+                    tableSortConfig.key = key;
+                    tableSortConfig.asc = true;
+                }
+                
+                headers.forEach(h => {
+                    const icon = h.querySelector("i");
+                    if (h === header) {
+                        icon.className = tableSortConfig.asc ? "fa-solid fa-sort-up" : "fa-solid fa-sort-down";
+                        icon.style.opacity = 1;
+                    } else {
+                        icon.className = "fa-solid fa-sort";
+                        icon.style.opacity = 0.5;
+                    }
+                });
+                renderTable();
+            });
+        });
+    }
+
+    function initEventListeners() {
+        document.getElementById("sido-select").addEventListener("change", handleSidoChange);
+        
+        const slider = document.getElementById("trend-months");
+        const sliderVal = document.getElementById("trend-val");
+        slider.addEventListener("input", (e) => {
+            sliderVal.textContent = `${e.target.value}개월`;
+        });
+        
+        document.getElementById("search-form").addEventListener("submit", handleFormSubmit);
+        
+        document.getElementById("table-search-name").addEventListener("keyup", renderTable);
+        document.getElementById("filter-min-size").addEventListener("input", renderTable);
+        document.getElementById("filter-max-size").addEventListener("input", renderTable);
+        
+        document.getElementById("reset-filters-btn").addEventListener("click", () => {
+            document.getElementById("table-search-name").value = "";
+            document.getElementById("filter-min-size").value = "";
+            document.getElementById("filter-max-size").value = "";
+            renderTable();
+        });
+
+        // Save key button event (optional)
+        const saveKeyBtn = document.getElementById("save-key-btn");
+        if (saveKeyBtn) {
+            saveKeyBtn.addEventListener("click", () => {
+                const keyInput = document.getElementById("api-key-input") ? document.getElementById("api-key-input").value.trim() : "";
+                if (keyInput) {
+                    localStorage.setItem("apt_api_key", keyInput);
+                    apiKey = keyInput;
+                    document.getElementById("connection-status").textContent = "인증키 저장됨";
+                    alert("공공데이터 API 인증키가 로컬 브라우저에 임시 저장되었습니다.");
+                } else {
+                    alert("인증키를 입력해주세요.");
+                }
+            });
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        populateYearSelect();
+        populateMonthSelect();
+        initEventListeners();
+        initTableSorting();
+        loadRegions();
+        initKakaoMap();
+    });
+    
+</script>
+</body>
+</html>

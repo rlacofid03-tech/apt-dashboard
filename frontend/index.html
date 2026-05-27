@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>아파트 실거래가 통계 분석 대시보드</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="fa-solid fa-chart-line logo-icon"></i>
+                <div class="logo-text">
+                    <h1>APT.STAT</h1>
+                    <span>실거래가 트렌드 분석</span>
+                </div>
+            </div>
+            
+            <form id="search-form" class="search-form">
+                <div class="form-group">
+                    <label for="sido-select"><i class="fa-solid fa-map-location-dot"></i> 시/도</label>
+                    <select id="sido-select" required>
+                        <option value="" disabled selected>시/도 선택</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="sigungu-select"><i class="fa-solid fa-location-dot"></i> 시/군/구</label>
+                    <select id="sigungu-select" required disabled>
+                        <option value="" disabled selected>시/군/구 선택</option>
+                    </select>
+                </div>
+                
+                <div class="form-group row">
+                    <div class="col">
+                        <label for="year-select"><i class="fa-solid fa-calendar-days"></i> 연도</label>
+                        <select id="year-select" required>
+                            <!-- Will be dynamically populated, e.g. 2020 ~ Current Year -->
+                        </select>
+                    </div>
+                    <div class="col">
+                        <label for="month-select"><i class="fa-solid fa-calendar"></i> 월</label>
+                        <select id="month-select" required>
+                            <!-- 1 ~ 12 -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="label-with-val">
+                        <label for="trend-months"><i class="fa-solid fa-clock-rotate-left"></i> 분석 기간</label>
+                        <span id="trend-val">6개월</span>
+                    </div>
+                    <input type="range" id="trend-months" min="3" max="12" value="6" step="1">
+                    <div class="range-labels">
+                        <span>3개월</span>
+                        <span>12개월</span>
+                    </div>
+                </div>
+                
+                <button type="submit" id="search-btn">
+                    <span id="btn-text">통계 분석 실행</span>
+                    <span id="btn-spinner" class="spinner hidden"><i class="fa-solid fa-circle-notch fa-spin"></i></span>
+                </button>
+            </form>
+            
+            <div class="sidebar-footer">
+                <p>국토교통부 실거래 상세 자료 기반</p>
+                <span class="badge">MVP Version</span>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Content -->
+        <main class="main-content">
+            <!-- Welcome/Alert Header -->
+            <header class="dashboard-header">
+                <div class="header-title">
+                    <h2 id="search-title-text">아파트 실거래가 대시보드</h2>
+                    <p id="search-subtitle-text">시작하려면 왼쪽에서 지역과 연월을 선택하고 분석을 실행하세요.</p>
+                </div>
+                <div class="theme-status">
+                    <div class="status-indicator">
+                        <span class="pulse-dot"></span>
+                        <span id="connection-status">API 대기 중</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Body (Hidden initially or showing empty state) -->
+            <div id="dashboard-body" class="dashboard-body hidden">
+                
+                <!-- KPI Cards Row -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrapper blue">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">평균 거래금액</span>
+                            <h3 id="kpi-avg-price">-</h3>
+                            <p class="kpi-subtext" id="kpi-avg-price-sub">선택 지역 기준</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrapper green">
+                            <i class="fa-solid fa-house-circle-check"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">거래 건수</span>
+                            <h3 id="kpi-total-deals">-</h3>
+                            <p class="kpi-subtext" id="kpi-total-deals-sub">해당 월 거래량</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-icon-wrapper purple">
+                            <i class="fa-solid fa-ruler-combined"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">평당 평균 가격</span>
+                            <h3 id="kpi-pyeong-price">-</h3>
+                            <p class="kpi-subtext">3.3㎡ (1평) 기준</p>
+                        </div>
+                    </div>
+                    
+                    <div class="kpi-card max-deal-card">
+                        <div class="kpi-icon-wrapper gold">
+                            <i class="fa-solid fa-trophy"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">최고 거래가 아파트</span>
+                            <h3 id="kpi-max-price">-</h3>
+                            <p class="kpi-subtext" id="kpi-max-desc">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid Section -->
+                <div class="chart-row-1">
+                    <!-- Price & Volume Historical Trend -->
+                    <div class="chart-card trend-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-chart-area"></i> 실거래가 및 거래량 추이</h4>
+                            <span class="card-legend">선택한 기간 동안의 시세 변화 및 거래량 흐름</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Size Class Statistics -->
+                    <div class="chart-card size-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-chart-column"></i> 전용면적별 평균 거래가</h4>
+                            <span class="card-legend">평형대별 거래 금액 비교</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="sizeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-row-2">
+                    <!-- Price Distribution (Doughnut) -->
+                    <div class="chart-card price-dist-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-chart-pie"></i> 거래 금액대별 분포</h4>
+                            <span class="card-legend">거래 금액대별 비중</span>
+                        </div>
+                        <div class="chart-wrapper doughnut-wrapper">
+                            <canvas id="priceDistChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Summary / Insights -->
+                    <div class="chart-card insights-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-magnifying-glass-chart"></i> 분석 요약 및 지표</h4>
+                            <span class="card-legend">수집된 데이터 통계 요약</span>
+                        </div>
+                        <div class="insights-content">
+                            <ul class="stats-summary-list">
+                                <li>
+                                    <span class="summary-label">최저 거래 금액</span>
+                                    <span class="summary-value" id="stat-min-deal">-</span>
+                                </li>
+                                <li>
+                                    <span class="summary-label">평균 전용면적</span>
+                                    <span class="summary-value" id="stat-avg-area">-</span>
+                                </li>
+                                <li>
+                                    <span class="summary-label">평균 거래 층수</span>
+                                    <span class="summary-value" id="stat-avg-floor">-</span>
+                                </li>
+                                <li>
+                                    <span class="summary-label">노후도 분석 (평균 건축년도)</span>
+                                    <span class="summary-value" id="stat-avg-build-year">-</span>
+                                </li>
+                            </ul>
+                            
+                            <div class="insight-box">
+                                <div class="insight-title"><i class="fa-solid fa-circle-info"></i> 분석 가이드</div>
+                                <p class="insight-text" id="insight-dynamic-text">
+                                    상세 거래 목록은 하단 테이블에서 필터링하거나 정렬하여 자세히 확인하실 수 있습니다. 분석 기간 슬라이더를 늘리면 더 장기적인 트렌드 차트를 볼 수 있습니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Log Table & Map Layout -->
+                <div class="table-map-layout">
+                    <!-- Transaction Log Table -->
+                    <div class="table-card">
+                        <div class="table-card-header">
+                            <div class="table-title">
+                                <h4><i class="fa-solid fa-list-ul"></i> 실거래 상세 내역</h4>
+                                <span class="table-subtitle" id="table-subtitle-count">총 0건의 거래</span>
+                            </div>
+                            <div class="table-filters">
+                                <div class="filter-input-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="table-search-name" placeholder="아파트명 검색...">
+                                </div>
+                                <div class="filter-size-range">
+                                    <input type="number" id="filter-min-size" placeholder="최소 ㎡" min="0">
+                                    <span>~</span>
+                                    <input type="number" id="filter-max-size" placeholder="최대 ㎡" min="0">
+                                </div>
+                                <button id="reset-filters-btn" class="btn-secondary"><i class="fa-solid fa-rotate-left"></i> 초기화</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="transaction-table">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="dealDay" class="sortable">계약일 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="umdNm" class="sortable">법정동 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="aptNm" class="sortable">아파트명 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="dealAmount" class="sortable text-right">거래 금액 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="excluUseAr" class="sortable text-right">전용면적 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="floor" class="sortable text-right">층 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="buildYear" class="sortable text-right">건축년도 <i class="fa-solid fa-sort"></i></th>
+                                        <th data-sort="pyeongPrice" class="sortable text-right">평당 단가 <i class="fa-solid fa-sort"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transaction-table-body">
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Empty Table State -->
+                        <div id="table-empty-state" class="table-empty-state hidden">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <p>검색 조건에 맞는 실거래 데이터가 존재하지 않습니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- Kakao Map Card -->
+                    <div class="map-card">
+                        <div class="card-header">
+                            <h4><i class="fa-solid fa-map-location-dot"></i> 아파트 위치 지도</h4>
+                            <span class="card-legend">거래 아파트 위치 (목록 클릭 시 이동)</span>
+                        </div>
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Empty State / Loading State (Before first search) -->
+            <div id="empty-dashboard-state" class="empty-dashboard-state">
+                <div class="empty-state-content">
+                    <div class="animated-icon-container">
+                        <i class="fa-solid fa-city city-bg-icon"></i>
+                        <i class="fa-solid fa-magnifying-glass-chart main-state-icon"></i>
+                    </div>
+                    <h3>아파트 실거래 통계 분석 시스템</h3>
+                    <p>
+                        좌측 메뉴에서 분석을 진행할 지역(시/도, 시/군/구)과 원하는 기준 월을 선택해 주세요.<br>
+                        국토교통부 API를 실시간으로 조회하여 데이터 통계 및 시계열 차트를 즉시 생성합니다.
+                    </p>
+                    <div class="empty-state-features">
+                        <div class="feature-item">
+                            <i class="fa-solid fa-chart-line"></i>
+                            <span>실거래가 추이 시각화</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-database"></i>
+                            <span>로컬 SQLite 고속 캐싱</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                            <span>면적/금액대별 정밀 분석</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- KAKAO_MAP_SDK_PLACEHOLDER -->
+    <script src="js/app.js"></script>
+</body>
+</html>
