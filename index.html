@@ -1009,6 +1009,333 @@ tr:hover td {
     color: var(--accent-red) !important;
 }
 
+/* Sidebar Menu / Navigation Tabs */
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.menu-tab-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    font-size: 14px;
+    justify-content: flex-start;
+    gap: 12px;
+    width: 100%;
+}
+
+.menu-tab-btn i {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+
+.menu-tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+}
+
+.menu-tab-btn.active {
+    background-color: var(--primary-light);
+    color: var(--text-primary);
+    border-color: rgba(99, 102, 241, 0.2);
+    font-weight: 600;
+}
+
+/* GitHub Tasks Section */
+.github-tasks-body {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    animation: fadeIn 0.4s ease;
+}
+
+.tasks-header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
+    backdrop-filter: blur(10px);
+}
+
+.repo-info-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.repo-icon {
+    font-size: 32px;
+    color: var(--text-primary);
+}
+
+.tasks-header-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.tasks-header-section p {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.task-sync-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.task-sync-status span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.btn-icon {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* Main Grid Layout for Tasks */
+.tasks-main-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.task-form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    backdrop-filter: blur(10px);
+}
+
+.task-form-card h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-form-card textarea {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 12px 14px;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    resize: none;
+    transition: var(--transition);
+}
+
+.task-form-card textarea:focus {
+    border-color: var(--primary);
+    background-color: rgba(255, 255, 255, 0.08);
+}
+
+#create-task-btn {
+    background: linear-gradient(135deg, var(--primary), #8b5cf6);
+    border: none;
+    color: white;
+    padding: 12px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+}
+
+#create-task-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+}
+
+/* Kanban Board Layout */
+.kanban-board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.kanban-column {
+    background: rgba(13, 17, 33, 0.4);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 500px;
+}
+
+.column-header h5 {
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.count-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.text-blue { color: var(--accent-blue); }
+.text-green { color: var(--accent-green); }
+
+.card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Task Item Card */
+.task-item-card {
+    background: rgba(30, 41, 79, 0.3);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: var(--transition);
+}
+
+.task-item-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-hover);
+    background: rgba(30, 41, 79, 0.45);
+}
+
+.task-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.task-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+}
+
+.task-item-body {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+.task-item-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 10px;
+    margin-top: 4px;
+}
+
+.task-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.task-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.task-action-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.task-action-btn.complete-btn:hover {
+    color: var(--accent-green);
+}
+
+.task-action-btn.reopen-btn:hover {
+    color: var(--accent-blue);
+}
+
+/* Unconfigured State styles */
+.github-unconfigured-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.warning-icon {
+    font-size: 48px;
+    color: var(--accent-gold);
+    margin-bottom: 20px;
+}
+
+.github-unconfigured-state h3 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.github-unconfigured-state p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 480px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 
 
 </style>
@@ -1023,6 +1350,16 @@ tr:hover td {
                     <h1>APT.STAT</h1>
                     <span>실거래가 트렌드 분석</span>
                 </div>
+            </div>
+            
+            <!-- Sidebar Navigation Tabs -->
+            <div class="sidebar-menu">
+                <button type="button" class="menu-tab-btn active" data-tab="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> 아파트 통계
+                </button>
+                <button type="button" class="menu-tab-btn" data-tab="tasks">
+                    <i class="fa-brands fa-github"></i> 작업 관리 (GitHub)
+                </button>
             </div>
             
             <form id="search-form" class="search-form">
@@ -1304,6 +1641,78 @@ tr:hover td {
                             <span>면적/금액대별 정밀 분석</span>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- GitHub Tasks Content -->
+            <div id="github-tasks-body" class="github-tasks-body hidden">
+                <header class="tasks-header-section">
+                    <div class="repo-info-box">
+                        <i class="fa-brands fa-github repo-icon"></i>
+                        <div>
+                            <h3 id="github-repo-name">GitHub Repository</h3>
+                            <p id="github-repo-desc">작업 목록 및 이슈 트래킹</p>
+                        </div>
+                    </div>
+                    <div class="task-sync-status">
+                        <span id="task-sync-time">최근 동기화: -</span>
+                        <button type="button" id="task-refresh-btn" class="btn-icon"><i class="fa-solid fa-arrows-rotate"></i></button>
+                    </div>
+                </header>
+
+                <div id="github-configured-view">
+                    <div class="tasks-main-grid">
+                        <!-- Left: Create Task Form -->
+                        <div class="task-form-card">
+                            <h4><i class="fa-solid fa-circle-plus"></i> 새 작업 추가</h4>
+                            <form id="create-task-form">
+                                <div class="form-group">
+                                    <label for="task-title">작업 제목</label>
+                                    <input type="text" id="task-title" placeholder="해결할 이슈 또는 작업 제목..." required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="task-body">작업 내용 (상세 설명)</label>
+                                    <textarea id="task-body" placeholder="작업의 구체적인 구현 내용이나 설명..." rows="4"></textarea>
+                                </div>
+                                <button type="submit" id="create-task-btn">
+                                    <span>작업 등록하기</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Right: Kanban / Columns -->
+                        <div class="kanban-board">
+                            <!-- Column 1: Active Tasks -->
+                            <div class="kanban-column" id="todo-column">
+                                <div class="column-header">
+                                    <h5><i class="fa-solid fa-list-check text-blue"></i> 진행 중인 작업 <span class="count-badge" id="todo-count">0</span></h5>
+                                </div>
+                                <div class="card-list" id="todo-list">
+                                    <!-- Dynamically loaded cards -->
+                                </div>
+                            </div>
+
+                            <!-- Column 2: Completed Tasks -->
+                            <div class="kanban-column" id="done-column">
+                                <div class="column-header">
+                                    <h5><i class="fa-solid fa-circle-check text-green"></i> 완료된 작업 <span class="count-badge" id="done-count">0</span></h5>
+                                </div>
+                                <div class="card-list" id="done-list">
+                                    <!-- Dynamically loaded cards -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GitHub Not Configured Alert State -->
+                <div id="github-unconfigured-state" class="github-unconfigured-state hidden">
+                    <i class="fa-brands fa-github warning-icon"></i>
+                    <h3>GitHub 연동 설정 필요</h3>
+                    <p>
+                        프로젝트 루트의 <strong>.env</strong> 파일 내 <code>[github]</code> 섹션에 <code>key</code>와 <code>username</code>이 바르게 설정되어 있는지 확인해 주세요.<br>
+                        설정 완료 후 서버를 재시작하면 실시간 작업 관리가 시작됩니다.
+                    </p>
                 </div>
             </div>
         </main>
@@ -2394,6 +2803,227 @@ tr:hover td {
                 }
             });
         }
+
+        // Tab Switching
+        const tabButtons = document.querySelectorAll(".menu-tab-btn");
+        tabButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const targetTab = btn.getAttribute("data-tab");
+                
+                // Toggle button active class
+                tabButtons.forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                
+                // Toggle content panels
+                if (targetTab === "dashboard") {
+                    document.getElementById("search-form").classList.remove("hidden");
+                    document.getElementById("github-tasks-body").classList.add("hidden");
+                    
+                    // Show dashboard elements
+                    const hasSearched = !document.getElementById("dashboard-body").classList.contains("hidden");
+                    if (hasSearched) {
+                        document.getElementById("dashboard-body").classList.remove("hidden");
+                    } else {
+                        document.getElementById("empty-dashboard-state").classList.remove("hidden");
+                    }
+                    
+                    // Relayout map if map is loaded
+                    if (map) {
+                        setTimeout(() => {
+                            map.relayout();
+                        }, 100);
+                    }
+                } else if (targetTab === "tasks") {
+                    document.getElementById("search-form").classList.add("hidden");
+                    document.getElementById("github-tasks-body").classList.remove("hidden");
+                    document.getElementById("dashboard-body").classList.add("hidden");
+                    document.getElementById("empty-dashboard-state").classList.add("hidden");
+                    
+                    // Load GitHub tasks
+                    loadGithubIssues();
+                }
+            });
+        });
+
+        // GitHub Refresh Button
+        document.getElementById("task-refresh-btn").addEventListener("click", loadGithubIssues);
+
+        // GitHub Create Task Form Submit
+        document.getElementById("create-task-form").addEventListener("submit", handleCreateTaskSubmit);
+    }
+
+    // GitHub Issue Management Logic
+    async function loadGithubIssues() {
+        const syncTimeSpan = document.getElementById("task-sync-time");
+        const refreshBtnIcon = document.querySelector("#task-refresh-btn i");
+        
+        refreshBtnIcon.classList.add("fa-spin");
+        syncTimeSpan.textContent = "동기화 중...";
+        
+        try {
+            const res = await fetch("/api/github/issues");
+            if (!res.ok) throw new Error("GitHub Issues fetch failed");
+            
+            const data = await res.json();
+            
+            const configuredView = document.getElementById("github-configured-view");
+            const unconfiguredState = document.getElementById("github-unconfigured-state");
+            
+            if (!data.configured) {
+                configuredView.classList.add("hidden");
+                unconfiguredState.classList.remove("hidden");
+                document.getElementById("github-repo-name").textContent = "GitHub 연동 미완료";
+                document.getElementById("github-repo-desc").textContent = ".env 설정을 완료하세요.";
+                return;
+            }
+            
+            configuredView.classList.remove("hidden");
+            unconfiguredState.classList.add("hidden");
+            
+            document.getElementById("github-repo-name").textContent = data.repo;
+            document.getElementById("github-repo-desc").textContent = "연결된 원격 저장소 작업 관리 보드";
+            
+            renderKanban(data.issues);
+            
+            const now = new Date();
+            syncTimeSpan.textContent = `최근 동기화: ${now.toLocaleTimeString()}`;
+        } catch (err) {
+            console.error(err);
+            syncTimeSpan.textContent = "동기화 실패";
+        } finally {
+            refreshBtnIcon.classList.remove("fa-spin");
+        }
+    }
+
+    function renderKanban(issues) {
+        const todoList = document.getElementById("todo-list");
+        const doneList = document.getElementById("done-list");
+        
+        todoList.innerHTML = "";
+        doneList.innerHTML = "";
+        
+        let todoCount = 0;
+        let doneCount = 0;
+        
+        issues.forEach(issue => {
+            const card = document.createElement("div");
+            card.className = "task-item-card";
+            
+            const date = new Date(issue.created_at);
+            const dateStr = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+            
+            const bodyContent = issue.body ? `<p class="task-item-body">${escapeHtml(issue.body)}</p>` : "";
+            
+            let actionBtn = "";
+            if (issue.state === "open") {
+                actionBtn = `
+                    <button type="button" class="task-action-btn complete-btn" onclick="toggleTask(${issue.number}, 'open')">
+                        <i class="fa-regular fa-square-check"></i> 완료
+                    </button>
+                `;
+            } else {
+                actionBtn = `
+                    <button type="button" class="task-action-btn reopen-btn" onclick="toggleTask(${issue.number}, 'closed')">
+                        <i class="fa-solid fa-rotate-left"></i> 재개
+                    </button>
+                `;
+            }
+            
+            card.innerHTML = `
+                <div class="task-item-header">
+                    <a href="${issue.html_url}" target="_blank" class="task-item-title">${escapeHtml(issue.title)}</a>
+                    <span class="badge" style="font-size: 9px; align-self: flex-start;">#${issue.number}</span>
+                </div>
+                ${bodyContent}
+                <div class="task-item-footer">
+                    <span class="task-meta"><i class="fa-regular fa-user"></i> ${issue.user} • ${dateStr}</span>
+                    ${actionBtn}
+                </div>
+            `;
+            
+            if (issue.state === "open") {
+                todoList.appendChild(card);
+                todoCount++;
+            } else {
+                doneList.appendChild(card);
+                doneCount++;
+            }
+        });
+        
+        document.getElementById("todo-count").textContent = todoCount;
+        document.getElementById("done-count").textContent = doneCount;
+    }
+
+    async function handleCreateTaskSubmit(e) {
+        e.preventDefault();
+        
+        const titleInput = document.getElementById("task-title");
+        const bodyInput = document.getElementById("task-body");
+        const submitBtn = document.getElementById("create-task-btn");
+        
+        const title = titleInput.value.trim();
+        const body = bodyInput.value.trim();
+        
+        if (!title) return;
+        
+        submitBtn.disabled = true;
+        submitBtn.querySelector("span").textContent = "등록 중...";
+        
+        try {
+            const res = await fetch("/api/github/issues/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: jsonStringify({ title, body })
+            });
+            
+            if (!res.ok) throw new Error("Failed to create task");
+            
+            titleInput.value = "";
+            bodyInput.value = "";
+            await loadGithubIssues();
+        } catch (err) {
+            console.error(err);
+            alert("새 작업을 등록하지 못했습니다: " + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.querySelector("span").textContent = "작업 등록하기";
+        }
+    }
+
+    // Global hook for toggle action
+    window.toggleTask = async function(number, currentState) {
+        const nextState = currentState === "open" ? "closed" : "open";
+        try {
+            const res = await fetch("/api/github/issues/toggle", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: jsonStringify({ number, state: nextState })
+            });
+            
+            if (!res.ok) throw new Error("Failed to toggle task state");
+            await loadGithubIssues();
+        } catch (err) {
+            console.error(err);
+            alert("작업 상태 변경에 실패했습니다: " + err.message);
+        }
+    };
+
+    function jsonStringify(obj) {
+        return JSON.stringify(obj);
+    }
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     window.addEventListener("DOMContentLoaded", () => {
