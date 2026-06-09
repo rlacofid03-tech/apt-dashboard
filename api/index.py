@@ -254,6 +254,12 @@ def calculate_monthly_stats(deals):
 
 # --- Flask Routes ---
 
+@app.route('/')
+@app.route('/index.html')
+def serve_index():
+    root_dir = os.path.dirname(os.path.dirname(__file__))
+    return send_from_directory(root_dir, 'index.html')
+
 @app.after_request
 def add_cors_headers(response):
     response.headers['Access-Control-Allow-Origin'] = '*'
